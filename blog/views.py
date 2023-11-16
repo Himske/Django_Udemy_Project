@@ -18,4 +18,4 @@ def posts(request: HttpRequest) -> HttpResponse:
 
 def post_detail(request: HttpRequest, slug: str) -> HttpResponse:
     post = get_object_or_404(Post, slug=slug)
-    return render(request, "blog/post-detail.html", {"post": post})
+    return render(request, "blog/post-detail.html", {"post": post, "tags": post.tags.all()})
