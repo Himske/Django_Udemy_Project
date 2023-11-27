@@ -1,21 +1,37 @@
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, render
+from typing import Any
+
+from django.db.models.query import QuerySet
+from django.views.generic import DetailView, ListView
 
 from .models import Post
 
 # Create your views here.
 
 
-def home_page(request: HttpRequest) -> HttpResponse:
-    latest_posts = Post.objects.all().order_by("-date")[:3]
-    return render(request, "blog/index.html", {"posts": latest_posts})
+class HomePageView(ListView):
+    template_name = "blog/index.html"
+    model = Post
+    ordering = ["-date"]
+    context_object_name = "posts"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        queryset = super().get_queryset()
+        data = queryset[:3]
+        return data
 
 
-def posts(request: HttpRequest) -> HttpResponse:
-    all_posts = Post.objects.all().order_by("-date")
-    return render(request, "blog/all-posts.html", {"all_posts": all_posts})
+class AllPostsView(ListView):
+    template_name = "blog/all-posts.html"
+    model = Post
+    ordering = ["-date"]
+    context_object_name = "all_posts"
 
 
-def post_detail(request: HttpRequest, slug: str) -> HttpResponse:
-    post = get_object_or_404(Post, slug=slug)
-    return render(request, "blog/post-detail.html", {"post": post, "tags": post.tags.all()})
+class SinglePostView(DetailView):
+    template_name = "blog/post-detail.html"
+    model = Post
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["tags"] = self.object.tags.all()
+        return context
